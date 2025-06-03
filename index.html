@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat App</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        #chat-container {
+            margin-top: 20px;
+        }
+
+        #messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        #messages li {
+            background-color: #e2e8f0;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="room-join">
+            <input type="text" id="roomInput" placeholder="Room name">
+            <br>
+            <button onclick="joinRoom()">Join Room</button>
+        </div>
+
+        <div id="chat-container" style="display: none;">
+            <ul id="messages"></ul>
+            <input type="text" id="messageInput" placeholder="Message">
+            <br>
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentRoom;
+
+        function joinRoom() {
+            const room = document.getElementById('roomInput').value;
+            if (room.trim() !== "") {
+                socket.emit('joinRoom', room);
+                currentRoom = room;
+                document.getElementById('chat-container').style.display = 'block';
+            }
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            if (message.trim() !== "") {
+                socket.emit('sendMessage', { room: currentRoom, message });
+                document.getElementById('messageInput').value = '';
+            }
+        }
+
+        socket.on('message', (data) => {
+            const li = document.createElement('li');
+            li.textContent = `${data.user}: ${data.message}`;
+            document.getElementById('messages').appendChild(li);
+        });
+    </script>
+</body>
+</html>
